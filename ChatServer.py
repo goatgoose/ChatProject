@@ -1,3 +1,23 @@
+"""
+    Author: Sam Clark
+    Class: CSI-235-02
+    Assignment: Final Project
+    Date Assigned: 4/17/2017
+    Due Date: 5/5/2017, 11:59 PM
+    Description:
+    Asynchronous chat client and server
+    Certification of Authenticity:
+    I certify that this is entirely my own work, except where I have given
+    fully-documented references to the work of others. I understand the
+    definition and consequences of plagiarism and acknowledge that the assessor
+    of this assignment may, for the purpose of assessing this assignment:
+    - Reproduce this assignment and provide a copy to another member of
+    academic staff; and/or
+    - Communicate a copy of this assignment to a plagiarism checking
+    service (which may then retain a copy of this assignment on its database
+    for the purpose of future plagiarism checking)
+ """
+
 
 import socket
 import select
@@ -8,7 +28,13 @@ import Message
 
 
 class ChatServer:
+    """Manages interactions with ChatClient"""
     def __init__(self):
+        """
+        pre: none
+        post: initializes ClientServer's member variables
+        purpose: creates a new ChatServer
+        """
         self.INTERFACE = "0.0.0.0"
         self.PORT = 8001
         self.BUFFER_SIZE = 4096
@@ -25,6 +51,11 @@ class ChatServer:
         self.chat_log = []
 
     def start(self):
+        """
+        pre: none
+        post: starts the server, sending and receiving data forever, asynchronously
+        purpose: starts the ChatServer
+        """
         self.listener.listen(1)
         print "Listening on port", self.PORT
 
@@ -82,18 +113,33 @@ class ChatServer:
                     del self.sockets[fd]
 
     def get_sock(self, user):
+        """
+        pre: user is in the user_sockets dictionary
+        post: returns the socket for the given user
+        purpose: reverse searches the user_sockets dictionary
+        """
         for user_sock in self.user_sockets:
             if self.user_sockets[user_sock] == user:
                 return user_sock
         return ""
 
     def queue_message(self, sock, data):
+        """
+        pre: none
+        post: none
+        purpose: adds the given data to the outgoing message string
+        """
         to_send = self.data_to_send.pop(sock, b'')
         to_send += struct.pack("!I", len(data)) + data.encode()
         self.data_to_send[sock] = to_send
         self.poller.modify(sock, select.POLLOUT)
 
     def handle_data(self, sock, data):
+        """
+        pre: none
+        post: none
+        purpose: parses and handles the given data sent by the client
+        """
         data = json.loads(data)
         if "USERNAME" in data:
             username = data["USERNAME"]

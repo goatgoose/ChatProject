@@ -1,3 +1,23 @@
+"""
+    Author: Sam Clark
+    Class: CSI-235-02
+    Assignment: Final Project
+    Date Assigned: 4/17/2017
+    Due Date: 5/5/2017, 11:59 PM
+    Description:
+    Asynchronous chat client and server
+    Certification of Authenticity:
+    I certify that this is entirely my own work, except where I have given
+    fully-documented references to the work of others. I understand the
+    definition and consequences of plagiarism and acknowledge that the assessor
+    of this assignment may, for the purpose of assessing this assignment:
+    - Reproduce this assignment and provide a copy to another member of
+    academic staff; and/or
+    - Communicate a copy of this assignment to a plagiarism checking
+    service (which may then retain a copy of this assignment on its database
+    for the purpose of future plagiarism checking)
+ """
+
 
 import select
 import socket
@@ -9,7 +29,13 @@ import Message
 
 
 class ChatClient:
+    """Manages interactions with ChatServer"""
     def __init__(self):
+        """
+        pre: none
+        post: initializes ChatClient's member variables
+        purpose: creates a new ChatClient
+        """
         self.HOST = "127.0.0.1"
         self.PORT = 8001
         self.BUFFER_SIZE = 4096
@@ -30,6 +56,11 @@ class ChatClient:
         self.user_list = []
 
     def start(self):
+        """
+        pre: none
+        post: starts the client, reading data from stdin and retrieving data from the server forever, asynchronously
+        purpose: starts the ChatServer
+        """
         print "Enter a username: "
 
         while True:
@@ -103,11 +134,21 @@ class ChatClient:
                     self.output_sockets.remove(self.server_sock)
 
     def queue_message(self, data):
+        """
+        pre: none
+        post: none
+        purpose: adds the given data to the outgoing message string
+        """
         self.bytes_to_send += struct.pack("!I", len(data)) + data.encode()
         if self.server_sock not in self.output_sockets:
             self.output_sockets.append(self.server_sock)
 
     def handle_data(self, data):
+        """
+        pre: none
+        post: none
+        purpose: parses and handles the given data sent from the server
+        """
         data = json.loads(data)
 
         if "INFO" in data:
