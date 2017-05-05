@@ -46,19 +46,43 @@ class ChatClient:
                         if len(message) == 0:
                             print "Server has disconnected."
                             sock.close()
-                            break
+                            continue
 
-                        dest = "ALL"
-                        if message[0] == "@":
-                            dest = message.split(" ")[0][1:]
-                        self.queue_message(json.dumps({
-                            "MESSAGES": [(
-                                self.username,
-                                dest,
-                                int(time.time()),
-                                message
-                            )]
-                        }))
+                        if message[0] == "/":
+                            command = message.split(" ")[0][1:]
+                            if command.lower() == "help":
+                                print "Available commands:"
+                                print "/help - displays available commands"
+                                print "/list - lists all users connected to server"
+                                print "/w [username] [message] - whispers a message to a user"
+
+                            elif command.lower() == "list":
+                                for user in self.user_list:
+                                    print user
+
+                            elif command.lower() == "w":
+                                if len(message.split(" ")) < 3:
+                                    print "Invalid usage - /w [username] [message]"
+                                    continue
+
+                                message_split = message.split(" ")
+                                self.queue_message(json.dumps({
+                                    "MESSAGES": [(
+                                        self.username,
+                                        message_split[1],
+                                        int(time.time()),
+                                        "".join(message_split[2:])
+                                    )]
+                                }))
+                        else:
+                            self.queue_message(json.dumps({
+                                "MESSAGES": [(
+                                    self.username,
+                                    "ALL",
+                                    int(time.time()),
+                                    message
+                                )]
+                            }))
 
                 elif sock == self.server_sock:
                     incoming_data = sock.recv(self.BUFFER_SIZE)
@@ -80,6 +104,7 @@ class ChatClient:
 
     def queue_message(self, data):
         self.bytes_to_send += struct.pack("!I", len(data)) + data.encode()
+        print self.bytes_to_send
         if self.server_sock not in self.output_sockets:
             self.output_sockets.append(self.server_sock)
 
@@ -89,9 +114,14 @@ class ChatClient:
         if "INFO" in data:
             print data["INFO"]
 
+        if "ERROR" in data:
+            print data["ERROR"]
+
         if "USERNAME_ACCEPTED" in data:
             self.username_verified = data["USERNAME_ACCEPTED"]
-            if not self.username_verified:
+            if self.username_verified:
+                print "Type /help for command information"
+            else:
                 print "Enter a username: "
 
         if "USER_LIST" in data:

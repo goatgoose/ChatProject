@@ -61,6 +61,7 @@ class ChatServer:
                 # data out
                 elif event & select.POLLOUT:
                     data = self.data_to_send[sock]
+                    print data
                     bytes_sent = sock.send(data)
                     if bytes_sent < len(data):
                         self.data_to_send[sock] = data[bytes_sent:]
@@ -70,11 +71,22 @@ class ChatServer:
 
                 # close / error
                 elif event & (select.POLLHUP | select.POLLERR | select.POLLNVAL):
-                    print "connection closed"
+                    user = self.user_sockets[sock]
+                    print "User: " + user + " disconnected."
+                    for user_sock in self.user_sockets:
+                        self.queue_message(user_sock, json.dumps({
+                            "USERS_LEFT": [user]
+                        }))
                     self.poller.unregister(fd)
+                    self.user_sockets.pop(sock)
                     sock.close()
                     del self.sockets[fd]
-                    # TODO tell client user disconnected
+
+    def get_sock(self, user):
+        for user_sock in self.user_sockets:
+            if self.user_sockets[user_sock] == user:
+                return user_sock
+        return ""
 
     def queue_message(self, sock, data):
         to_send = self.data_to_send.pop(sock, b'')
@@ -102,6 +114,7 @@ class ChatServer:
                     "INFO": "Spaces not allowed in usernames."
                 }))
             else:
+                self.user_sockets[sock] = username
                 self.queue_message(sock, json.dumps({
                     "USERNAME_ACCEPTED": True,
                     "INFO": "Welcome!",
@@ -112,19 +125,18 @@ class ChatServer:
                     self.queue_message(user_sock, json.dumps({
                         "USERS_JOINED": username
                     }))
-                self.user_sockets[sock] = username
 
         if "MESSAGES" in data:
             for msg_tuple in data["MESSAGES"]:
                 self.chat_log.append(msg_tuple)
                 message = Message.Message(msg_tuple)
                 if message.dest != "ALL":  # its a dm
-                    if message.dest not in self.user_sockets:
+                    if message.dest not in self.user_sockets.values():
                         self.queue_message(sock, json.dumps({
                             "ERROR": "User: " + message.dest + " does not exist."
                         }))
                     else:
-                        self.queue_message(self.user_sockets[message.dest], json.dumps({
+                        self.queue_message(self.get_sock(message.dest), json.dumps({
                             "MESSAGES": [msg_tuple]
                         }))
                 else:
