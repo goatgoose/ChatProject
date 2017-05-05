@@ -113,17 +113,18 @@ class ChatServer:
                     "INFO": "Spaces not allowed in usernames."
                 }))
             else:
+                for user_sock in self.user_sockets:
+                    self.queue_message(user_sock, json.dumps({
+                        "USERS_JOINED": username
+                    }))
+
+                self.user_sockets[sock] = username
                 self.queue_message(sock, json.dumps({
                     "USERNAME_ACCEPTED": True,
                     "INFO": "Welcome!",
                     "USER_LIST": self.user_sockets.values(),
                     "MESSAGES": self.chat_log
                 }))
-                for user_sock in self.user_sockets:
-                    self.queue_message(user_sock, json.dumps({
-                        "USERS_JOINED": username
-                    }))
-                self.user_sockets[sock] = username
 
         if "MESSAGES" in data:
             for msg_tuple in data["MESSAGES"]:

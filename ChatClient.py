@@ -104,7 +104,6 @@ class ChatClient:
 
     def queue_message(self, data):
         self.bytes_to_send += struct.pack("!I", len(data)) + data.encode()
-        print self.bytes_to_send
         if self.server_sock not in self.output_sockets:
             self.output_sockets.append(self.server_sock)
 
