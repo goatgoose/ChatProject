@@ -120,6 +120,7 @@ class ChatClient:
         if "USERNAME_ACCEPTED" in data:
             self.username_verified = data["USERNAME_ACCEPTED"]
             if self.username_verified:
+                self.user_list.append(self.username)
                 print "Type /help for command information"
             else:
                 print "Enter a username: "

@@ -61,7 +61,6 @@ class ChatServer:
                 # data out
                 elif event & select.POLLOUT:
                     data = self.data_to_send[sock]
-                    print data
                     bytes_sent = sock.send(data)
                     if bytes_sent < len(data):
                         self.data_to_send[sock] = data[bytes_sent:]
@@ -114,7 +113,6 @@ class ChatServer:
                     "INFO": "Spaces not allowed in usernames."
                 }))
             else:
-                self.user_sockets[sock] = username
                 self.queue_message(sock, json.dumps({
                     "USERNAME_ACCEPTED": True,
                     "INFO": "Welcome!",
@@ -125,6 +123,7 @@ class ChatServer:
                     self.queue_message(user_sock, json.dumps({
                         "USERS_JOINED": username
                     }))
+                self.user_sockets[sock] = username
 
         if "MESSAGES" in data:
             for msg_tuple in data["MESSAGES"]:
