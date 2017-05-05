@@ -21,7 +21,6 @@
 
 import socket
 import select
-import queue
 import struct
 import json
 import Message
