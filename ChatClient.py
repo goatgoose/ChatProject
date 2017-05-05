@@ -43,10 +43,14 @@ class ChatClient:
                             "USERNAME": self.username
                         }))
                     else:
+                        if len(message) == 0:
+                            print "Server has disconnected."
+                            sock.close()
+                            break
+
                         dest = "ALL"
                         if message[0] == "@":
                             dest = message.split(" ")[0][1:]
-
                         self.queue_message(json.dumps({
                             "MESSAGES": [(
                                 self.username,

@@ -45,6 +45,10 @@ class ChatServer:
                 # data in
                 elif event & select.POLLIN:
                     incoming_data = sock.recv(self.BUFFER_SIZE)
+                    if len(incoming_data) == 0:
+                        self.poller.modify(sock, select.POLLHUP)
+                        continue
+
                     data = self.data_received.pop(sock, b'') + incoming_data
                     msg_length = struct.unpack("!I", data[:4])[0]
 
@@ -82,12 +86,12 @@ class ChatServer:
         data = json.loads(data)
         if "USERNAME" in data:
             username = data["USERNAME"]
-            if sock in self.user_sockets.values():
+            if sock in self.user_sockets:
                 self.queue_message(sock, json.dumps({
                     "USERNAME_ACCEPTED": False,
                     "INFO": "Client already has a username."
                 }))
-            elif username in self.user_sockets:
+            elif username in self.user_sockets.values():
                 self.queue_message(sock, json.dumps({
                     "USERNAME_ACCEPTED": False,
                     "INFO": "Username already exists."
