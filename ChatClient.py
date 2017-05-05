@@ -130,7 +130,7 @@ class ChatClient:
         if "MESSAGES" in data:
             for msg_tuple in data["MESSAGES"]:
                 message = Message.Message(msg_tuple)
-                print message.source + "@" + str(message.timestamp) + ": " + message.content
+                print message.pretty_print()
 
         if "USERS_JOINED" in data:
             for user in data["USERS_JOINED"]:
